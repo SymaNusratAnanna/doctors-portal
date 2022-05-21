@@ -1,13 +1,15 @@
-import { updateProfile } from 'firebase/auth';
+// import { updateProfile } from 'firebase/auth';
 import React from 'react';
 import { useCreateUserWithEmailAndPassword, useSignInWithGoogle, useUpdateProfile } from 'react-firebase-hooks/auth';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import auth from '../../firebase.init';
+import useToken from '../../hooks/useToken';
+import Loading from '../Shared/Loading';
 
 const SignUp = () => {
     const { register, formState: { errors }, handleSubmit } = useForm();
-    const [signInWithGoogle, guser,gLoading, gError] = useSignInWithGoogle(auth);
+    const [signInWithGoogle, gUser,gLoading, gError] = useSignInWithGoogle(auth);
     const [
         createUserWithEmailAndPassword,
         user,
@@ -16,27 +18,33 @@ const SignUp = () => {
       ] = useCreateUserWithEmailAndPassword(auth);
 
       const [updateProfile, updating, updateerror] = useUpdateProfile(auth);
+
+      const [token] = useToken(user|| gUser)
       const navigate = useNavigate();
 
     let signInError;
 
     if( loading || gLoading || updating){
-      return <button className="btn loading">loading</button>
+      return <Loading></Loading>
 
     }
     if(error|| gError||updateerror)
     {
       signInError=<p className='text-red-500'><span>{error?.message || gError?.message || updateerror?.message}</span></p>
     }
-    if(guser){
-        console.log(guser);
+    // if(gUser){
+    //     console.log(gUser);
+    // }
+
+    if(token){
+      navigate('/appointmentpage');
     }
     const onSubmit =  async data => { 
         console.log(data);
       await createUserWithEmailAndPassword(data.email,data.password);
       await updateProfile({displayName:data.name});
       console.log('update done');
-      navigate('/appointmentpage')
+      // navigate('/appointmentpage')
     }
     return (
         <div>

@@ -3,10 +3,13 @@ import {useSignInWithEmailAndPassword, useSignInWithGoogle} from 'react-firebase
 import { useForm } from "react-hook-form";
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import auth from '../../firebase.init';
+import useToken from '../../hooks/useToken';
+import Loading from '../Shared/Loading';
 
 const Login = () => {
+    
+    const [signInWithGoogle, gUser,gLoading, gError,updating] = useSignInWithGoogle(auth);
     const { register, formState: { errors }, handleSubmit } = useForm();
-    const [signInWithGoogle, gUser,gLoading, gError] = useSignInWithGoogle(auth);
     const [
       signInWithEmailAndPassword,
       user,
@@ -14,6 +17,9 @@ const Login = () => {
       error,
     ] = useSignInWithEmailAndPassword(auth);
 
+    const[token] = useToken(user|| gUser);
+    
+    
     let signInError;
     const navigate = useNavigate();
     const location = useLocation();
@@ -22,23 +28,28 @@ const Login = () => {
 
     useEffect(()=>{
 
-      if (user|| gUser){
+      if (token){
         navigate(from,{ replace: true});
       }
 
-    },[user,gUser, from ,navigate])
+    },[token, from ,navigate])
 
-    if( loading || gLoading){
-      return <button className="btn loading">loading</button>
+    if (loading|| gLoading){
+      return <Loading></Loading>
 
     }
+
+    // if( loading || gLoading){
+    //   return <button className="btn loading">loading</button>
+
+    // }
     if(error|| gError)
     {
       signInError=<p className='text-red-500'><span>{error?.message || gError?.message}</span></p>
     }
     
     const onSubmit = data => { 
-        console.log(data);
+        //console.log(data);
       signInWithEmailAndPassword(data.email,data.password);}
     return (
         <div className='flex h-screen justify-center items-center'>
